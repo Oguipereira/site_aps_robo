@@ -51,7 +51,9 @@ code, pre { font-family: var(--mono); }
 .wrap { width: min(1240px, 100%); margin: 0 auto; padding: 0 var(--pad); }
 
 /* ---------- palco 3D ---------- */
-#stage { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+#stage { position: fixed; left: 0; top: 0; width: 100%; height: 100vh; height: 100lvh; z-index: 0; display: block; }
+.no-webgl #stage { display: none; }
+.no-webgl .hero { background: url('/fotos/robo-real.jpg') right 30% / min(60vw, 640px) no-repeat; }
 main { position: relative; z-index: 1; }
 
 .progress { position: fixed; left: 0; right: 0; top: 0; height: 2px; z-index: 30; pointer-events: none; }
@@ -98,8 +100,12 @@ main { position: relative; z-index: 1; }
 @keyframes cue { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 @media (max-width: 900px) {
   .hero { align-items: flex-end; }
-  .hero::before { content: ''; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, rgba(0,0,0,.85) 30%); pointer-events: none; }
+  .hero { padding-bottom: 2.2rem; min-height: 100svh; }
+  .hero::before { content: ''; position: absolute; inset: 48% 0 0; background: linear-gradient(transparent, #000 38%); pointer-events: none; }
   .hero-copy { position: relative; }
+  .hero h1 { font-size: clamp(2.3rem, 11vw, 3.4rem); max-width: none; margin-bottom: 1rem; }
+  .hero-kicker { margin-bottom: .6rem; font-size: .9rem; }
+  .hero-lede { font-size: .98rem; }
   .hero-cue { display: none; }
 }
 
@@ -172,21 +178,44 @@ pre.mini {
 .has-callout .leader, .has-callout .callout, .has-callout .rail { opacity: 1; }
 
 @media (max-width: 900px) {
-  .rail { display: none; }
-  .step { align-items: flex-end; padding-bottom: 2rem; }
+  .rail, .leader, .callout { display: none; }
+  .step { min-height: 100svh; align-items: flex-end; padding: 0 .9rem 1rem; }
   .step-card {
     width: 100%;
-    background: rgba(0, 0, 0, .72);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    padding: 1.3rem 1.2rem;
-    border: 1px solid rgba(255,255,255,.1);
+    max-height: 52svh; overflow-y: auto; overscroll-behavior: contain;
+    background: rgba(8, 8, 8, .88);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    padding: 1.1rem 1.1rem 1.15rem;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    opacity: 1;
+    transform: translateY(14px);
+    transition: transform .5s var(--ease), opacity .5s var(--ease);
   }
-  .step p { font-size: .94rem; margin-bottom: .7em; }
-  .step h2 { font-size: 1.65rem; margin-bottom: .8rem; }
-  pre.mini { font-size: .7rem; margin-top: .8rem; }
-  .tally { grid-template-columns: repeat(2, 1fr); }
-  .callout { font-size: .78rem; }
+  .step:not([data-on]) .step-card { opacity: .0; }
+  .step[data-on] .step-card { transform: none; }
+  .step-n { margin-bottom: .5rem; font-size: .8rem; }
+  .step h2 { font-size: 1.55rem; line-height: 1.02; margin-bottom: .7rem; }
+  .step p { font-size: .95rem; line-height: 1.5; margin-bottom: .6em; color: #d6d2ca; }
+  .step-more { display: none; }
+  .step-card.open .step-more { display: block; }
+  .step-toggle {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: none; border: 0; padding: .35rem 0 0; cursor: pointer;
+    color: var(--tt); font-weight: 650; font-size: .9rem;
+  }
+  .step-toggle::after { content: '+'; font-size: 1.1rem; line-height: 1; }
+  .step-card.open .step-toggle::after { content: '–'; }
+  .step-card.open .step-toggle { margin-bottom: .5rem; }
+  pre.mini { font-size: .7rem; margin-top: .6rem; }
+  .flow { margin-top: .6rem; }
+  .flow span { font-size: .75rem; }
+  .tally { grid-template-columns: repeat(4, 1fr); gap: .6rem; margin-top: .9rem; }
+  .tally dt { font-size: .68rem; }
+  .tally dd { font-size: 1.6rem; }
 }
+.step-toggle { display: none; }
+@media (max-width: 900px) { .step-toggle { display: inline-flex; } }
 
 /* ---------- cabeçalhos de seção ---------- */
 .sec-head { max-width: 46rem; margin-bottom: clamp(2.5rem, 6vw, 4.5rem); }
@@ -449,4 +478,54 @@ section.strategy, section.wiring, section.code, section.process, section.ml, sec
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
   .chart .bar i { width: calc(var(--w) * 1%); }
+}
+
+/* ---------- celular: ajustes finos das seções ---------- */
+@media (max-width: 700px) {
+  section.strategy, section.wiring, section.code, section.process, section.ml, section.final { padding: 4.5rem 0; }
+  .sec-head { margin-bottom: 2.2rem; }
+  .sec-head h2 { font-size: clamp(2rem, 9vw, 2.6rem); }
+  .sec-head p { font-size: .98rem; }
+  .ladder { margin-bottom: 2.5rem; }
+  .ladder li, .ladder li + li { padding: 1.1rem 0 1.3rem; }
+  .ladder h3 { font-size: 1.5rem; }
+  .opening { margin-bottom: 3rem; gap: 1rem; }
+  .sweep li { padding: .6rem .6rem; font-size: .9rem; }
+  .sim-stage { max-width: 100%; }
+  .sim-panel h3 { font-size: 1.4rem; }
+  .ops { margin: 1rem 0; }
+  .ops button { flex: 1 1 calc(50% - .5rem); padding: .7rem .5rem; }
+  .readout dd { font-size: .92rem; }
+  .sim-actions .btn { flex: 1 1 auto; }
+
+  .pin-list button { padding: .75rem .2rem; font-size: .95rem; }
+  .wire-label { display: none; }
+  .pin text { font-size: 19px; }
+  .uno-name { font-size: 40px; }
+  .pin-detail { min-height: 0; }
+  .pin-detail h3 { font-size: 1.25rem; }
+
+  .code-tabs { margin: 0 calc(var(--pad) * -1); padding: 0 var(--pad); scrollbar-width: none; }
+  .code-tabs::-webkit-scrollbar { display: none; }
+  .code-tabs button { padding: .7rem .8rem; }
+  .code-tabs .fn { font-size: .8rem; }
+  .code-main { min-height: 0; margin: 0 calc(var(--pad) * -1); border-left: 0; border-right: 0; }
+  .code-view { max-height: 20rem; }
+  .code-view pre { font-size: .7rem; padding: 1rem; }
+  .code-explain { padding: 1.2rem var(--pad); }
+  .code-explain h3 { font-size: 1.2rem; }
+
+  .photos { gap: .5rem; }
+  .ph { padding: .35rem .35rem .45rem; }
+  .ph figcaption { font-size: .74rem; }
+  .lesson p { font-size: 1.2rem; }
+  .pipeline { grid-template-columns: 1fr; }
+  .pipeline li::before { font-size: 1.2rem; }
+  .bar-row { grid-template-columns: 4.6rem 1fr 3rem; gap: .5rem; }
+  .who, .val { font-size: .85rem; }
+  .finding .big { font-size: 1.8rem; }
+  .final-place { font-size: 46vw; -webkit-text-stroke-width: 1.5px; }
+  .team ul { grid-template-columns: 1fr; font-size: 1.05rem; }
+  .links { flex-direction: column; }
+  .links a { display: block; text-align: center; }
 }

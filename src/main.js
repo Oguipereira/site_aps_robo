@@ -33,11 +33,18 @@ document.querySelectorAll('a[href^="#"]').forEach((a) =>
 
 // ---------- cena 3D ----------
 const canvas = document.querySelector('#stage');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const isTouch = matchMedia('(pointer: coarse)').matches;
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: !isTouch || devicePixelRatio < 2, powerPreference: 'high-performance' });
+} catch (e) {
+  document.documentElement.classList.add('no-webgl');
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, isTouch ? 1.5 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = isTouch ? 1.2 : 1.05;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 
@@ -56,7 +63,7 @@ const key = new THREE.SpotLight(0xfff1dc, 2600, 160, 0.42, 0.55, 1.6);
 key.position.set(18, 52, 24);
 key.target.position.set(0, 2, 0);
 key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
+key.shadow.mapSize.set(isTouch ? 1024 : 2048, isTouch ? 1024 : 2048);
 key.shadow.bias = -0.0004;
 key.shadow.normalBias = 0.03;
 key.shadow.camera.near = 20; key.shadow.camera.far = 120;
@@ -201,17 +208,23 @@ if (!reduced) {
 }
 
 // ---------- render ----------
+ScrollTrigger.config({ ignoreMobileResize: true });
 let W = 0, H = 0, mobile = false;
-function resize() {
-  W = innerWidth; H = innerHeight;
+function resize(force) {
+  const w = innerWidth;
+  // no celular, a barra de endereço muda a altura ao rolar: só refaz ao girar a tela
+  if (isTouch && !force && w === W) return;
+  W = w;
+  H = canvas.clientHeight || innerHeight; // o canvas tem 100lvh: altura estável
   mobile = W < 900;
   renderer.setSize(W, H, false);
   camera.aspect = W / H;
-  camera.fov = mobile ? 42 : 30;
+  camera.fov = mobile ? 36 : 30;
   camera.updateProjectionMatrix();
 }
-addEventListener('resize', resize);
-resize();
+addEventListener('resize', () => resize(false));
+addEventListener('orientationchange', () => setTimeout(() => resize(true), 200));
+resize(true);
 
 const clock = new THREE.Clock();
 let spinAngle = 0;
@@ -234,14 +247,16 @@ function frame() {
   }
 
   // no celular, a câmera recua para o robô caber acima do texto
-  camera.position.copy(S.cam).sub(S.tgt).multiplyScalar(mobile ? 1.5 : 1).add(S.tgt);
+  const far = mobile ? (W / H < 0.6 ? 1.62 : 1.4) : 1;
+  camera.position.copy(S.cam).sub(S.tgt).multiplyScalar(far).add(S.tgt);
+  scene.fog.near = 70 * far; scene.fog.far = 150 * far;
   camera.lookAt(S.tgt);
   const sh = S.shift;
-  if (mobile) camera.setViewOffset(W, H, 0, H * 0.22 * sh, W, H);
+  if (mobile) camera.setViewOffset(W, H, 0, H * 0.24 * sh, W, H);
   else camera.setViewOffset(W, H, -W * 0.19 * sh, 0, W, H);
 
   // rótulo
-  if (activeStep >= 0) {
+  if (activeStep >= 0 && !mobile) {
     const names = STEPS[activeStep].focus;
     const g = parts[names[0]];
     tmp.copy(g.userData.anchor).applyMatrix4(g.matrixWorld);
@@ -262,6 +277,23 @@ function frame() {
   renderer.render(scene, camera);
 }
 frame();
+
+// ---------- cartões: "mais detalhes" no celular ----------
+document.querySelectorAll('.step-more').forEach((more, i) => {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'step-toggle';
+  btn.setAttribute('aria-expanded', 'false');
+  more.id = `step-more-${i}`;
+  btn.setAttribute('aria-controls', more.id);
+  btn.textContent = 'Mais detalhes';
+  btn.addEventListener('click', () => {
+    const open = more.parentElement.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    btn.textContent = open ? 'Menos detalhes' : 'Mais detalhes';
+  });
+  more.before(btn);
+});
 
 // ---------- seções interativas ----------
 initSim(document.querySelector('#arena-sim'));
