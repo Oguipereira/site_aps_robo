@@ -93,7 +93,7 @@ const all = Object.values(parts);
 
 // ---------- estado animável ----------
 const S = {
-  cam: new THREE.Vector3(36, 19, 48),
+  cam: new THREE.Vector3(42, 22, 56),
   tgt: new THREE.Vector3(0, 4.6, 0),
   lift: 0,
   shift: 1, // desloca o robô para a direita (desktop) / para cima (mobile)
@@ -209,6 +209,8 @@ if (!reduced) {
 
 // ---------- render ----------
 ScrollTrigger.config({ ignoreMobileResize: true });
+const mobileMQ = matchMedia('(max-width: 760px), (max-width: 1024px) and (orientation: portrait)');
+mobileMQ.addEventListener('change', () => resize(true));
 let W = 0, H = 0, mobile = false;
 function resize(force) {
   const w = innerWidth;
@@ -216,7 +218,7 @@ function resize(force) {
   if (isTouch && !force && w === W) return;
   W = w;
   H = canvas.clientHeight || innerHeight; // o canvas tem 100lvh: altura estável
-  mobile = W < 900;
+  mobile = mobileMQ.matches;
   renderer.setSize(W, H, false);
   camera.aspect = W / H;
   camera.fov = mobile ? 36 : 30;
@@ -226,11 +228,13 @@ addEventListener('resize', () => resize(false));
 addEventListener('orientationchange', () => setTimeout(() => resize(true), 200));
 resize(true);
 
-const clock = new THREE.Clock();
+let lastT = performance.now();
 let spinAngle = 0;
 function frame() {
   requestAnimationFrame(frame);
-  const dt = Math.min(clock.getDelta(), 0.05);
+  const now = performance.now();
+  const dt = Math.min((now - lastT) / 1000, 0.05);
+  lastT = now;
   if (!stageOn) { document.body.classList.remove('has-callout'); return; }
   if (!reduced) spinAngle += dt * 0.22 * S.spin;
 
@@ -253,7 +257,12 @@ function frame() {
   camera.lookAt(S.tgt);
   const sh = S.shift;
   if (mobile) camera.setViewOffset(W, H, 0, H * 0.24 * sh, W, H);
-  else camera.setViewOffset(W, H, -W * 0.19 * sh, 0, W, H);
+  else {
+    // centraliza o robô no espaço livre à direita do texto
+    const ref = activeStep < 0 ? document.querySelector('.hero h1') : stepEls[0].firstElementChild;
+    const textRight = ref.getBoundingClientRect().right || W * 0.38;
+    camera.setViewOffset(W, H, -Math.min(W * 0.24, textRight / 2 + 10) * sh, 0, W, H);
+  }
 
   // rótulo
   if (activeStep >= 0 && !mobile) {

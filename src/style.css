@@ -82,15 +82,15 @@ main { position: relative; z-index: 1; }
 .hero-copy { max-width: 44rem; pointer-events: auto; }
 .hero-kicker { color: var(--mute); font-stretch: 112%; margin-bottom: 1.2rem; }
 .hero h1 {
-  font-size: clamp(2.7rem, 7.4vw, 7.4rem);
+  font-size: clamp(2.7rem, 6.4vw, 7.2rem);
   font-stretch: 125%;
   font-weight: 860;
   line-height: .9;
   letter-spacing: -.035em;
-  max-width: 11ch;
+  max-width: min(11ch, 50vw);
   margin-bottom: 1.6rem;
 }
-.hero-lede { max-width: 34rem; color: #cfccc5; font-size: clamp(1rem, 1.3vw, 1.15rem); }
+.hero-lede { max-width: min(34rem, 46vw); color: #cfccc5; font-size: clamp(1rem, 1.3vw, 1.15rem); }
 .hero-cue {
   position: absolute; right: var(--pad); bottom: clamp(5rem, 12vh, 8rem);
   display: flex; flex-direction: column; align-items: center; gap: .8rem;
@@ -98,12 +98,13 @@ main { position: relative; z-index: 1; }
 }
 .hero-cue i { width: 1px; height: 64px; background: linear-gradient(var(--chalk), transparent); animation: cue 2.2s var(--ease) infinite; transform-origin: top; }
 @keyframes cue { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
-@media (max-width: 900px) {
+@media (max-width: 760px), (max-width: 1024px) and (orientation: portrait) {
   .hero { align-items: flex-end; }
   .hero { padding-bottom: 2.2rem; min-height: 100svh; }
   .hero::before { content: ''; position: absolute; inset: 48% 0 0; background: linear-gradient(transparent, #000 38%); pointer-events: none; }
   .hero-copy { position: relative; }
   .hero h1 { font-size: clamp(2.3rem, 11vw, 3.4rem); max-width: none; margin-bottom: 1rem; }
+  .hero-lede { max-width: none; }
   .hero-kicker { margin-bottom: .6rem; font-size: .9rem; }
   .hero-lede { font-size: .98rem; }
   .hero-cue { display: none; }
@@ -117,7 +118,7 @@ main { position: relative; z-index: 1; }
   padding: 0 var(--pad);
 }
 .step-card {
-  width: min(31rem, 40vw);
+  width: min(31rem, 38vw);
   opacity: .25;
   transition: opacity .5s var(--ease);
 }
@@ -162,6 +163,14 @@ pre.mini {
 .rail li[data-on] { color: var(--chalk); }
 .rail li[data-on]::after { background: var(--chalk); color: #000; border-color: var(--chalk); }
 
+/* véu à esquerda: mantém o texto legível quando uma peça passa por trás */
+.scrim {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,.82) 0, rgba(0,0,0,.55) 30%, rgba(0,0,0,0) 48%);
+  opacity: 0; transition: opacity .5s;
+}
+.has-callout .scrim { opacity: 1; }
+
 /* rótulo técnico seguindo a peça */
 .leader { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .35s; }
 .leader line { stroke: var(--chalk); stroke-width: 1; }
@@ -177,8 +186,8 @@ pre.mini {
 .callout-name { background: rgba(0,0,0,.6); padding: .2rem .5rem; }
 .has-callout .leader, .has-callout .callout, .has-callout .rail { opacity: 1; }
 
-@media (max-width: 900px) {
-  .rail, .leader, .callout { display: none; }
+@media (max-width: 760px), (max-width: 1024px) and (orientation: portrait) {
+  .rail, .leader, .callout, .scrim { display: none; }
   .step { min-height: 100svh; align-items: flex-end; padding: 0 .9rem 1rem; }
   .step-card {
     width: 100%;
@@ -215,7 +224,7 @@ pre.mini {
   .tally dd { font-size: 1.6rem; }
 }
 .step-toggle { display: none; }
-@media (max-width: 900px) { .step-toggle { display: inline-flex; } }
+@media (max-width: 760px), (max-width: 1024px) and (orientation: portrait) { .step-toggle { display: inline-flex; } }
 
 /* ---------- cabeçalhos de seção ---------- */
 .sec-head { max-width: 46rem; margin-bottom: clamp(2.5rem, 6vw, 4.5rem); }
